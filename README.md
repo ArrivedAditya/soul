@@ -1,4 +1,4 @@
-A program that make model that replicates a human soul.
+A program that use model that replicates a human soul.
 
 ## Idea
 Spilt the model into a base and memory.
