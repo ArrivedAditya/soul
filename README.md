@@ -1,4 +1,4 @@
-A program that replicates a human soul.
+A program that simulates a human soul.
 
 # Idea
 
@@ -10,6 +10,16 @@ Then when ever the model is in idle then shortTerm memory transfer to longTerm o
 All habits in reflex have resistence in order to prevent chainging fast.
 Habits in reflex only change when there is only number of repeations reached a saturation point.
 
-# Goal
+# Implementations
 
- - [ ] First make prototype of soul playing game.
+Model: RWKV7
+- self.state: f16
+- memory: i5
+- dreaming state: python script
+- running state: zig script
+- emotions: self.state
+Vector Database: Lancedb
+Search: Usearch
+Lang: Python and Zig
+MOE: LoRA Swarm
+
