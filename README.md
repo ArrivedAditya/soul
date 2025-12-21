@@ -13,17 +13,17 @@ Habits in reflex only change when there is only number of repeations reached a s
 # Implementations
 
 ## Game AI
-Can fully be implement? Yes
-Game Engine: Godot
-Replica: Nemesis System
-Organic Decision: Yes
-Real Time: Yes
-Limited: Decision
+Can fully be implement? Yes for decision
+**Game Engine**: Godot
+**Replica**: Nemesis System
+**Organic Decision**: Yes
+**Real Time**: Yes
+**Limited**: Decision
 
 ## NLP
 Can fully be implement? No for reflex
-LM: RWKV-G1
-Replica: J.A.R.V.I.S. , Great Sage
-Organic Decision: No
-Limited: RAG System and Decision
-Real Time: No but depends on hardware. 
+**LM**: RWKV-G1
+**Replica**: J.A.R.V.I.S. , Great Sage
+**Organic Decision**: No
+**Limited**: RAG System and Decision
+**Real Time**: No but depends on hardware. 
