@@ -4,4 +4,5 @@ version = "0.0.1"
 description = "Program the use models that behave human soul."
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+]

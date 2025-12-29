@@ -9,17 +9,3 @@ Whenever model interacts with something with will store in shortTerm memory.
 Then when ever the model is in idle then shortTerm memory transfer to longTerm only important part and most repeating part trasfer to reflex.
 All habits in reflex have resistence in order to prevent chainging fast.
 Habits in reflex only change when there is only number of repeations reached a saturation point.
-
-# Implementations
-
-Model: RWKV7
-- self.state: f16
-- memory: i5
-- dreaming state: python script
-- running state: zig script
-- emotions: self.state
-Vector Database: Lancedb
-Search: Usearch
-Lang: Python and Zig
-MOE: LoRA Swarm
-
