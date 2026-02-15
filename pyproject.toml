@@ -1,0 +1,19 @@
+[project]
+name = "soul"
+version = "0.2.0"
+description = "A personal AI companion with autonomous self-reflection, memory management, and human-like behavior"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=2.17.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.0.0",
+    "schedule>=1.2.0",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+analysis.autoImportCompletions = false
+reportMissingImports = true
+typeCheckingMode = "basic"
