@@ -93,23 +93,56 @@ class SamplerManager:
             )
 
     def _create_default_presets(self):
-        """Create default sampler presets."""
+        """Create default sampler presets optimized for RWKV7."""
         defaults = {
             "chat": {
-                "type": "Nucleus",
-                "temperature": 0.8,
+                "type": "Typical",
+                "temperature": 0.9,
                 "top_p": 0.5,
                 "top_k": 128,
+                "tau": 9.5,
                 "presence_penalty": 0.3,
                 "frequency_penalty": 0.3,
+                "penalty": 400,
+                "penalty_decay": 0.99654026,
             },
-            "reflect": {"type": "Mirostat", "tau": 0.5, "Rate": 0.09},
-            "task": {"type": "Nucleus", "temperature": 0.4, "top_p": 0.3, "top_k": 64},
+            "reflect": {
+                "type": "Mirostat",
+                "tau": 0.5,
+                "Rate": 0.09,
+                "penalty": 400,
+                "penalty_decay": 0.99654026,
+            },
+            "task": {
+                "type": "Nucleus",
+                "temperature": 0.4,
+                "top_p": 0.3,
+                "top_k": 64,
+                "presence_penalty": 0.3,
+                "frequency_penalty": 0.3,
+                "penalty": 400,
+                "penalty_decay": 0.99654026,
+            },
             "decision": {
                 "type": "Nucleus",
                 "temperature": 0.3,
                 "top_p": 0.2,
                 "top_k": 32,
+                "presence_penalty": 0.3,
+                "frequency_penalty": 0.3,
+                "penalty": 400,
+                "penalty_decay": 0.99654026,
+            },
+            "idle": {
+                "type": "Typical",
+                "temperature": 0.7,
+                "top_p": 0.4,
+                "top_k": 64,
+                "tau": 9.5,
+                "presence_penalty": 0.4,
+                "frequency_penalty": 0.4,
+                "penalty": 400,
+                "penalty_decay": 0.99654026,
             },
         }
 

@@ -13,11 +13,8 @@ Usage:
 
 import asyncio
 import argparse
-import sys
+from typing import Optional
 from pathlib import Path
-
-# Add soul package to path
-sys.path.insert(0, str(Path(__file__).parent))
 
 from soul.models.ai00_client import AI00Client
 from soul.memory.memory_store import MemoryStore
@@ -28,8 +25,6 @@ from soul.safety.guardrails import Guardrails, ResourceMonitor
 
 
 class Soul:
-    """Main Soul AI application."""
-
     def __init__(self):
         print("Initializing Soul...")
 
@@ -44,8 +39,9 @@ class Soul:
 
         print("Components initialized.")
 
+    # Chat mode
     async def start_interactive(self, enable_idle: bool = False):
-        """Start interactive chat mode."""
+        # some very simple ascii art
         print("\n" + "=" * 60)
         print("  Soul - Personal AI Companion")
         print("  Type 'help' for commands, 'exit' to quit")
@@ -53,13 +49,16 @@ class Soul:
 
         # Check ai00 connection
         if not await self.ai00.check_health():
-            print("⚠️  Warning: ai00-server not responding at localhost:65530")
+            print("Warning: ai00-server not responding.")
             print("Please start ai00-server first.\n")
         else:
-            print("✓ Connected to ai00-server\n")
+            print("Connected to ai00-server and it's ready to serve.\n")
 
-        # Start idle engine if requested
+        # Idle Mode with cancellation support
         idle_task = None
+        idle_lock = asyncio.Lock()
+        self._idle_cancel_event = asyncio.Event()
+
         if enable_idle:
             self.idle_engine = IdleEngine(
                 ai00_client=self.ai00,
@@ -68,13 +67,15 @@ class Soul:
                 sampler_manager=self.samplers,
                 guardrails=self.guardrails,
                 resource_monitor=self.monitor,
+                user_interrupt_event=self._idle_cancel_event,
             )
             idle_task = asyncio.create_task(self.idle_engine.start())
-            print("✓ Idle engine started (2-minute cycles)\n")
+            print("Idle engine started (2-minute cycles)")
+            print("Commands will interrupt idle tasks\n")
 
         # Main interaction loop
         try:
-            await self._chat_loop()
+            await self._chat_loop(idle_lock=idle_lock)
         except KeyboardInterrupt:
             print("\n\nShutting down...")
         finally:
@@ -90,8 +91,8 @@ class Soul:
             self.tasks.close()
             print("Goodbye!")
 
-    async def _chat_loop(self):
-        """Main chat interaction loop."""
+    async def _chat_loop(self, idle_lock: Optional[asyncio.Lock] = None):
+        """Main chat interaction loop with idle interruption support."""
         # Set default sampler
         self.samplers.set_sampler("chat")
 
@@ -114,6 +115,13 @@ class Soul:
                 user_input = input("You: ").strip()
             except EOFError:
                 break
+
+            # Signal idle engine to interrupt current generation
+            if hasattr(self, "_idle_cancel_event") and self._idle_cancel_event:
+                self._idle_cancel_event.set()
+                # Small delay to let idle tasks check the event
+                await asyncio.sleep(0.1)
+                self._idle_cancel_event.clear()
 
             if not user_input:
                 continue

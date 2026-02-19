@@ -1,26 +1,28 @@
 {
   "chat": {
     "type": "Nucleus",
-    "temperature": 0.8,
-    "top_p": 0.5,
-    "top_k": 128,
-    "presence_penalty": 0.3,
-    "frequency_penalty": 0.3,
+    "temperature": 1.0,
+    "top_p": 0.9,
+    "top_k": 100,
+    "presence_penalty": 1.2,
+    "frequency_penalty": 0.5,
     "penalty": 400,
     "penalty_decay": 0.99654026
   },
   "reflect": {
     "type": "Mirostat",
     "tau": 0.5,
-    "Rate": 0.09
+    "Rate": 0.09,
+    "penalty": 400,
+    "penalty_decay": 0.99654026
   },
   "task": {
     "type": "Nucleus",
     "temperature": 0.4,
     "top_p": 0.3,
     "top_k": 64,
-    "presence_penalty": 0.2,
-    "frequency_penalty": 0.2,
+    "presence_penalty": 0.3,
+    "frequency_penalty": 0.3,
     "penalty": 400,
     "penalty_decay": 0.99654026
   },
@@ -29,8 +31,8 @@
     "temperature": 0.3,
     "top_p": 0.2,
     "top_k": 32,
-    "presence_penalty": 0.1,
-    "frequency_penalty": 0.1,
+    "presence_penalty": 0.3,
+    "frequency_penalty": 0.3,
     "penalty": 400,
     "penalty_decay": 0.99654026
   },
@@ -42,6 +44,17 @@
     "tau": 5,
     "presence_penalty": 0.3,
     "frequency_penalty": 0.3,
+    "penalty": 400,
+    "penalty_decay": 0.99654026
+  },
+  "idle": {
+    "type": "Typical",
+    "temperature": 0.7,
+    "top_p": 0.4,
+    "top_k": 64,
+    "tau": 9.5,
+    "presence_penalty": 0.4,
+    "frequency_penalty": 0.4,
     "penalty": 400,
     "penalty_decay": 0.99654026
   }

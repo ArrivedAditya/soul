@@ -37,6 +37,7 @@ class IdleEngine:
         resource_monitor: ResourceMonitor,
         idle_interval: int = 120,  # 2 minutes
         notification_callback: Optional[Callable] = None,
+        user_interrupt_event: Optional[asyncio.Event] = None,
     ):
         self.ai00 = ai00_client
         self.memory = memory_store
@@ -46,11 +47,13 @@ class IdleEngine:
         self.monitor = resource_monitor
         self.idle_interval = idle_interval
         self.notify = notification_callback or print
+        self.user_interrupt_event = user_interrupt_event
 
         self._running = False
         self._last_reflection = 0
         self._reflection_interval = 300  # Reflect every 5 minutes minimum
         self._cycle_count = 0
+        self._current_generation: Optional[asyncio.Task] = None
 
     async def start(self):
         """Start the idle loop."""
@@ -142,9 +145,10 @@ class IdleEngine:
                 result = await self._execute_task(task.description)
 
                 self.tasks.complete_task(task_id, result=result)
-                self.notify(f"[IDLE] Task completed")
+                self.notify(f"[IDLE] Task completed:\n{result}")
 
                 # Log to memory
+                # Memory needs to be have a better ways of storing it via skills in .md file, .state file and database.
                 self.memory.add_memory(
                     content=f"Completed task: {task.description}. Result: {result[:200]}",
                     memory_type="short_term",
@@ -157,11 +161,20 @@ class IdleEngine:
                 self.notify(f"[IDLE] Task failed: {error_msg}")
 
     async def _execute_task(self, description: str) -> str:
-        """Execute a task using the AI model."""
-        # Load task mode sampler
-        sampler = self.samplers.get_sampler("task")
+        """Execute a task using the AI model with interrupt support."""
+        # Check for user interrupt before starting
+        if self.user_interrupt_event and self.user_interrupt_event.is_set():
+            return "[INTERRUPTED] User input detected, task deferred"
+
+        # Use idle sampler for better rambling control
+        sampler = self.samplers.get_sampler("idle")
         if sampler:
-            self.samplers.set_sampler("task")
+            self.samplers.set_sampler("idle")
+        else:
+            # Fallback to task sampler
+            sampler = self.samplers.get_sampler("task")
+            if sampler:
+                self.samplers.set_sampler("task")
 
         # Load task prompt
         prompt_path = (
@@ -173,12 +186,12 @@ class IdleEngine:
             # Replace task placeholder
             system_prompt = system_prompt.replace("{{TASK_DESCRIPTION}}", description)
 
-        # Generate response
+        # Generate response with shorter max_tokens to prevent rambling
         response = await self.ai00.generate_text(
             prompt=f"Execute this task: {description}",
             system_prompt=system_prompt if system_prompt else None,
             sampler_config=self.samplers.get_current_api_dict(),
-            max_tokens=500,
+            max_tokens=300,  # Reduced from 500 to prevent rambling
         )
 
         return response
@@ -222,16 +235,19 @@ class IdleEngine:
         self.samplers.set_sampler("reflect")
 
         # Generate reflection
-        reflection_prompt = f"""Recent memories to reflect on:
-{memory_context}
+        reflection_prompt = f"""
+            Recent memories to reflect on: 
 
-Reflect on these interactions and identify patterns, learnings, and areas for improvement."""
+            {memory_context}
+
+            Reflect on these interactions and identify patterns, learnings, and areas for improvement.
+        """
 
         reflection = await self.ai00.generate_text(
             prompt=reflection_prompt,
             system_prompt=system_prompt if system_prompt else None,
             sampler_config=self.samplers.get_current_api_dict(),
-            max_tokens=400,
+            max_tokens=300,  # Reduced from 400 to prevent rambling
         )
 
         # Store reflection as memory
@@ -241,7 +257,7 @@ Reflect on these interactions and identify patterns, learnings, and areas for im
             metadata={"type": "self_reflection", "trigger": "idle_cycle"},
         )
 
-        self.notify(f"[IDLE] Reflection complete")
+        self.notify(f"[IDLE] Reflection complete.\n{reflection}")
         self.guardrails.log_action("reflect", "completed reflection cycle", True)
 
     def add_user_task(
@@ -260,7 +276,9 @@ Reflect on these interactions and identify patterns, learnings, and areas for im
         mem_stats = self.memory.get_stats()
         task_stats = self.tasks.get_stats()
 
-        return f"""Idle Engine: RUNNING (cycle #{self._cycle_count})
-Memory: {mem_stats.get("total_memories", 0)} total
-Tasks: {task_stats.get("pending", 0)} pending, {task_stats.get("in_progress", 0)} active
-Paused: {self.monitor.is_paused} ({self.monitor.pause_reason or "N/A"})"""
+        return f"""
+            Idle Engine: RUNNING (cycle #{self._cycle_count})
+            Memory: {mem_stats.get("total_memories", 0)} total
+            Tasks: {task_stats.get("pending", 0)} pending, {task_stats.get("in_progress", 0)} active
+            Paused: {self.monitor.is_paused} ({self.monitor.pause_reason or "N/A"})
+        """

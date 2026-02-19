@@ -3,11 +3,9 @@ AI00 Server client for model interaction.
 Handles chat completions, embeddings, and model loading.
 """
 
-import asyncio
 import httpx
 from openai import AsyncOpenAI
-from typing import Optional, Dict, Any, List, AsyncGenerator
-from pathlib import Path
+from typing import Optional, Dict, Any, List
 
 
 class AI00Client:
@@ -20,6 +18,8 @@ class AI00Client:
         )
         self.current_model: Optional[str] = None
 
+    # Why need to load model when ai00-server config already does that?
+    # Ans: It's probably for future use case when running in background.
     async def load_model(
         self,
         model_path: str,
@@ -33,7 +33,6 @@ class AI00Client:
         adapter: Optional[Dict] = None,
         timeout: float = 300.0,
     ) -> bool:
-        """Load a model on ai00-server."""
         payload = {
             "model_path": model_path,
             "tokenizer_path": tokenizer_path,
@@ -60,6 +59,9 @@ class AI00Client:
                 print(f"Failed to load model: {e}")
                 return False
 
+    # Default stop sequences for RWKV7 to prevent rambling
+    DEFAULT_STOP_SEQUENCES = ["User:", "Assistant:", "System:"]
+
     async def chat_completion(
         self,
         messages: List[Dict[str, str]],
@@ -70,7 +72,7 @@ class AI00Client:
         stop: Optional[List[str]] = None,
     ) -> str:
         """
-        Send a chat completion request.
+        Send a chat completion request to server.
 
         Args:
             messages: List of message dicts with 'role' and 'content'
@@ -78,7 +80,7 @@ class AI00Client:
             sampler_config: Sampler configuration dict
             max_tokens: Maximum tokens to generate
             stream: Whether to stream the response
-            stop: List of stop sequences
+            stop: List of stop sequences (uses defaults for RWKV7 if not provided)
 
         Returns:
             Generated text response
@@ -97,8 +99,10 @@ class AI00Client:
             "stream": stream,
         }
 
-        if stop:
-            kwargs["stop"] = stop
+        # Use default stop sequences for RWKV7 if none provided
+        if stop is None:
+            stop = self.DEFAULT_STOP_SEQUENCES
+        kwargs["stop"] = stop
 
         # Use extra_body to pass custom ai00-server parameters
         extra_body: Dict[str, Any] = {}
@@ -118,10 +122,17 @@ class AI00Client:
                         response_text += content
                         print(content, end="", flush=True)
                 print()  # Newline after streaming
-                return response_text
+                # Validate streaming response
+                is_valid, cleaned = self.validate_response(response_text)
+                if not is_valid:
+                    print(f"\n[Filtered: {cleaned}]")
+                return cleaned if is_valid else response_text
             else:
                 response = await self.client.chat.completions.create(**kwargs)
-                return response.choices[0].message.content
+                response_text = response.choices[0].message.content
+                # Validate non-streaming response
+                is_valid, cleaned = self.validate_response(response_text)
+                return cleaned
         except Exception as e:
             error_msg = f"Chat completion failed: {e}"
             print(error_msg)
@@ -168,8 +179,8 @@ class AI00Client:
             print(f"Embedding failed: {e}")
             return None
 
+    # Another one which doesn't use case for now
     async def unload_model(self) -> bool:
-        """Unload current model and close connection."""
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(f"{self.base_url}/admin/models/unload")
@@ -180,8 +191,53 @@ class AI00Client:
             print(f"Failed to unload model: {e}")
             return False
 
+    def validate_response(self, response: str) -> tuple[bool, str]:
+        """
+        Validate response to detect rambling or system prompt leakage.
+
+        Returns:
+            (is_valid, cleaned_response): Tuple indicating if valid and cleaned text
+        """
+        if not response:
+            return True, response
+
+        # Patterns indicating rambling about system instructions
+        rambling_patterns = [
+            "You are",
+            "system prompt",
+            "instruction",
+            "As an AI",
+            "As a language model",
+            "my programming",
+            "I am programmed to",
+            "I cannot",
+            "I must follow",
+        ]
+
+        lines = response.split("\n")
+        cleaned_lines = []
+        rambling_detected = False
+
+        for line in lines:
+            # Check if line starts with rambling pattern
+            if any(line.strip().startswith(pattern) for pattern in rambling_patterns):
+                rambling_detected = True
+                continue
+            cleaned_lines.append(line)
+
+        cleaned_response = "\n".join(cleaned_lines).strip()
+
+        # If response is too short after cleaning, it was all rambling
+        if rambling_detected and len(cleaned_response) < 10:
+            return (
+                False,
+                "[Response was filtered due to system prompt rambling. Please try again.]",
+            )
+
+        return True, cleaned_response
+
     async def check_health(self) -> bool:
-        """Check if ai00-server is running."""
+        """Check if ai00-server is running and ready to serve."""
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(

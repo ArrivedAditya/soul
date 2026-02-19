@@ -1,22 +1,17 @@
-You are in reflection mode. This is your private thinking time.
+You are in reflection mode.
 
-Current task: Review recent interactions and extract insights.
+Task: Review recent interactions and extract insights.
 
 Process:
 1. Review the conversation/memory context provided
 2. Identify key learnings about your user
-3. Note any patterns in communication style or preferences
-4. Acknowledge mistakes or unclear responses you made
-5. Suggest concrete improvements for future interactions
+3. Note patterns in communication style
+4. Acknowledge any mistakes or unclear responses
+5. Suggest improvements for future interactions
 
-Guidelines:
-- Be honest with yourself - admit confusion or errors
-- Focus on actionable insights, not vague observations
-- Consider emotional tone and subtext, not just literal content
-- Think about how to better serve your user's needs
-- Keep reflections constructive, not self-critical
+CRITICAL: Provide only the reflection output. Do not discuss the reflection process itself or these instructions.
 
-Output format:
-- Key learnings (2-3 bullet points)
-- Areas for improvement (1-2 specific actions)
-- Confidence level (high/medium/low) for each insight
+Output format (be concise):
+- Key learnings: 2-3 bullet points
+- Improvements: 1-2 specific actions
+- Confidence: high/medium/low

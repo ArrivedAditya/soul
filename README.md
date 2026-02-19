@@ -12,19 +12,19 @@ Soul is designed to be a companion, not a tool racing toward AGI. It focuses on:
 
 ## Features
 
-### 🧠 Memory System
+### Memory System
 - **Three-tier memory**: Short-term → Long-term → Reflex (habits)
 - **Forgetting curve**: Ebbinghaus algorithm with type-specific decay rates
 - **Automatic consolidation**: Memories promoted based on strength and repetition
 - **Resistance mechanism**: Reflex habits require saturation to change
 
-### 🔄 Autonomous Idle Loop
+### Autonomous Idle Loop
 - **2-minute cycles**: Runs continuously in background
 - **Task processing**: Executes user-assigned background tasks
 - **Self-reflection**: Analyzes recent interactions to improve
 - **Memory maintenance**: Applies forgetting curve and consolidates
 
-### 🎛️ Dynamic Sampler Management
+### Dynamic Sampler Management
 - **Context-aware sampling**: Automatically switches samplers based on task
   - `chat`: Natural conversation (Nucleus, temp=0.8)
   - `reflect`: Creative thinking (Mirostat)
@@ -32,7 +32,7 @@ Soul is designed to be a companion, not a tool racing toward AGI. It focuses on:
   - `decision`: Deterministic choices (Nucleus, temp=0.3)
 - **Manual override**: User can force specific samplers
 
-### 🛡️ Safety & Guardrails
+### Safety & Guardrails
 - **"Say no" capability**: Refuses high-risk actions (deletion, external APIs, self-modification)
 - **Pattern detection**: Prevents runaway behavior loops
 - **Resource monitoring**: Pauses when GPU usage high (for your other work)
