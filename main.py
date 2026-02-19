@@ -16,12 +16,12 @@ import argparse
 from typing import Optional
 from pathlib import Path
 
-from soul.models.ai00_client import AI00Client
-from soul.memory.memory_store import MemoryStore
-from soul.memory.task_manager import TaskManager, TaskPriority
-from soul.core.sampler_manager import SamplerManager
-from soul.core.idle_engine import IdleEngine
-from soul.safety.guardrails import Guardrails, ResourceMonitor
+from models.ai00_client import AI00Client
+from memory.memory_store import MemoryStore
+from memory.task_manager import TaskManager, TaskPriority
+from core.sampler_manager import SamplerManager
+from core.idle_engine import IdleEngine
+from safety.guardrails import Guardrails, ResourceMonitor
 
 
 class Soul:
