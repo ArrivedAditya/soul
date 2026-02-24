@@ -22,9 +22,12 @@ class Base:
             base_url=self._server_url,
             model=self.model_name,
             api_key="ollama",
+            extra_body={"think": True},
             streaming=True,
         )
-        message = HumanMessage("User: Explain async programming in one sentence.")
+        message = HumanMessage(
+            "User: Explain async programming in one sentence. think \nAssistant: <think"
+        )
 
         async for chunk in model.astream([message]):
             print(chunk)
